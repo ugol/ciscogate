@@ -220,8 +220,11 @@ func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
 
 		log.Printf("Sending a POST request with the token to %v with this json:\n %v", otherURL, jsonAnswer)
 
-		// TODO: add token and other metadata to the cookie
-		cookie := http.Cookie{}
+		// TODO: add other metadata to the cookie? check if 'token' is the correct name
+		cookie := http.Cookie{
+			Name:"token",
+			Value:token,
+		}
 		req, err = http.NewRequest("POST", otherURL, bytes.NewBuffer(xmlAuthBytes))
 		req.Header.Set("Content-Type", "application/json")
 		req.AddCookie(&cookie)
