@@ -17,6 +17,7 @@ package cmd
 import (
 	"bytes"
 	"context"
+	"encoding/xml"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
@@ -29,6 +30,53 @@ import (
 	"os/signal"
 	"time"
 )
+
+type Imdata struct {
+	XMLName    xml.Name `xml:"imdata"`
+	Text       string   `xml:",chardata"`
+	TotalCount string   `xml:"totalCount,attr"`
+	AaaLogin   struct {
+		Text                   string `xml:",chardata"`
+		Token                  string `xml:"token,attr"`
+		SiteFingerprint        string `xml:"siteFingerprint,attr"`
+		RefreshTimeoutSeconds  string `xml:"refreshTimeoutSeconds,attr"`
+		MaximumLifetimeSeconds string `xml:"maximumLifetimeSeconds,attr"`
+		GuiIdleTimeoutSeconds  string `xml:"guiIdleTimeoutSeconds,attr"`
+		RestTimeoutSeconds     string `xml:"restTimeoutSeconds,attr"`
+		CreationTime           string `xml:"creationTime,attr"`
+		FirstLoginTime         string `xml:"firstLoginTime,attr"`
+		UserName               string `xml:"userName,attr"`
+		RemoteUser             string `xml:"remoteUser,attr"`
+		UnixUserId             string `xml:"unixUserId,attr"`
+		SessionId              string `xml:"sessionId,attr"`
+		LastName               string `xml:"lastName,attr"`
+		FirstName              string `xml:"firstName,attr"`
+		ChangePassword         string `xml:"changePassword,attr"`
+		Version                string `xml:"version,attr"`
+		BuildTime              string `xml:"buildTime,attr"`
+		Node                   string `xml:"node,attr"`
+		AaaUserDomain          struct {
+			Text          string `xml:",chardata"`
+			Name          string `xml:"name,attr"`
+			RolesR        string `xml:"rolesR,attr"`
+			RolesW        string `xml:"rolesW,attr"`
+			AaaReadRoles  string `xml:"aaaReadRoles"`
+			AaaWriteRoles struct {
+				Text string `xml:",chardata"`
+				Role struct {
+					Text string `xml:",chardata"`
+					Name string `xml:"name,attr"`
+				} `xml:"role"`
+			} `xml:"aaaWriteRoles"`
+		} `xml:"aaaUserDomain"`
+		DnDomainMapEntry []struct {
+			Text            string `xml:",chardata"`
+			Dn              string `xml:"dn,attr"`
+			ReadPrivileges  string `xml:"readPrivileges,attr"`
+			WritePrivileges string `xml:"writePrivileges,attr"`
+		} `xml:"DnDomainMapEntry"`
+	} `xml:"aaaLogin"`
+}
 
 var (
 	address         = "localhost:8080"
@@ -137,7 +185,6 @@ func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
 		xmlAuthBytes := []byte(xmlAuth)
 
 
-
 		log.Printf("Sending a POST request to %v containing %v", tokenURL, xmlAuth)
 		req, err := http.NewRequest("POST", tokenURL, bytes.NewBuffer(xmlAuthBytes))
 		req.Header.Set("Content-Type", "application/xml")
@@ -151,9 +198,14 @@ func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
 
 		log.Println("Status -->", resp.Status)
 		log.Println("Headers -->", resp.Header)
-		token, _ := ioutil.ReadAll(resp.Body)
+		imDataRaw, _ := ioutil.ReadAll(resp.Body)
 
-		log.Printf("Received Auth token:\n %v", string(token))
+		token, err  := ExtractToken(imDataRaw)
+		if err != nil {
+			panic(err)
+		}
+
+		log.Printf("Received Auth token:\n %v", token)
 
 		log.Println("Loading answer.json template")
 		jsonAnswerBytes, err := ioutil.ReadFile("answer.json")
@@ -186,6 +238,13 @@ func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
 		log.Printf("Server answered with:\n %v", answer)
 
 	}
+}
+
+func ExtractToken(imDataRaw []byte) (string, error) {
+	var imData Imdata
+	err := xml.Unmarshal([]byte(imDataRaw), &imData)
+	token := imData.AaaLogin.Token
+	return token, err
 }
 
 func StartServer() {

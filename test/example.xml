@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<imdata totalCount="1">
+
+    <aaaLogin token="VHEFAAAAAAAAAAAAAAAAAMIejAwOdiZ6uxY4fuJCtYTqM+ZSjM8oPxorziue2jof75ECMSxd2n4CejTb/Az/FrWb+CMgFH51ee5G5aDaxEV3ox6aS7xcZDNrJ/iZCW9kLhvvy/YdAj/xY4q659HVgAObe15MnLgJiK5YYVPrIhT3Zhi4SbCpH3e4eFUm/+hMbKThXSAvD5DpWHTRB2QoTA==" siteFingerprint="rx839jMy2aVvbdYk" refreshTimeoutSeconds="6000" maximumLifetimeSeconds="86400" guiIdleTimeoutSeconds="65525" restTimeoutSeconds="90" creationTime="1553158383" firstLoginTime="1553158383" userName="admin" remoteUser="false" unixUserId="15374" sessionId="ms/OF24eRxShTNlbfbE6XQ==" lastName="" firstName="" changePassword="no" version="4.0(1h)" buildTime="Tue Oct 23 17:15:37 PDT 2018" node="topology/pod-1/node-1">
+
+        <aaaUserDomain name="all" rolesR="admin" rolesW="admin">
+
+            <aaaReadRoles/>
+
+            <aaaWriteRoles>
+
+                <role name="admin"/>
+
+            </aaaWriteRoles>
+
+        </aaaUserDomain>
+
+        <DnDomainMapEntry dn="uni/tn-mgmt" readPrivileges="admin" writePrivileges="admin"/>
+
+        <DnDomainMapEntry dn="uni/tn-common" readPrivileges="admin" writePrivileges="admin"/>
+
+        <DnDomainMapEntry dn="uni/tn-infra" readPrivileges="admin" writePrivileges="admin"/>
+
+        <DnDomainMapEntry dn="topology/pod-1/node-101" readPrivileges="admin" writePrivileges="admin"/>
+
+    </aaaLogin>
+
+</imdata>
