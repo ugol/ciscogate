@@ -17,8 +17,8 @@ WORKDIR /go
 
 
 COPY . .
-
-RUN go build
-RUN go get -u
+RUN export GOPATH=$GOPATH:/go
+RUN /opt/rh/go-toolset-7/root/usr/bin/go build
+RUN /opt/rh/go-toolset-7/root/usr/bin/go get -u
 
 CMD ["./ciscogate start"]
