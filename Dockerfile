@@ -1,7 +1,7 @@
 FROM centos
 
 USER root
-RUN bash
+RUN /bin/bash
 RUN /bin/yum -y update && yum clean all
 
 RUN mkdir -p /go && chmod -R 777 /go && \
