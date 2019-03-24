@@ -2,7 +2,7 @@ FROM centos
 
 USER root
 RUN bash
-RUN yum -y update && yum clean all
+RUN /bin/yum -y update && yum clean all
 
 RUN mkdir -p /go && chmod -R 777 /go && \
     yum install -y centos-release-scl && \
