@@ -1,4 +1,5 @@
-FROM centos:7
+FROM centos/go-toolset-7-centos7
+#FROM centos:7
 
 USER root
 
