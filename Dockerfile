@@ -17,4 +17,4 @@ RUN source /etc/profile &&\
 
 RUN mv ciscogate /usr/local/bin/
 
-CMD ["ciscogate start"]
+CMD ["/usr/local/bin/ciscogate start"]
