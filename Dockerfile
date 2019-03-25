@@ -16,8 +16,8 @@ RUN source /etc/profile &&\
     go get -u
 
 RUN mv ciscogate /usr/local/bin/
-RUN chgrp -R 0 /usr/local && \
-    chmod -R g=u /usr/local
+RUN chgrp -R 0 /usr/local/bin/ciscogate && \
+    chmod -R g=u /usr/local/bin/ciscogate
 
 EXPOSE 8080 
 
