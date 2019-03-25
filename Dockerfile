@@ -16,5 +16,9 @@ RUN source /etc/profile &&\
     go get -u
 
 RUN mv ciscogate /usr/local/bin/
+RUN chgrp -R 0 /usr/local && \
+    chmod -R g=u /usr/local
 
-CMD ["/usr/local/bin/ciscogate start"]
+EXPOSE 8080 
+
+CMD /usr/local/bin/ciscogate start
