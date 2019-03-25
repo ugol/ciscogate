@@ -7,7 +7,7 @@ Bla bla
 Building and compiling on OpenShift (env value as default)
 
 ```bash
-oc new-app centos~https://github.com/ugol/ciscogate.git \
+oc new-app docker.io/centos:latest~https://github.com/ugol/ciscogate.git \
   --env="CISCO_ADDRESS=localhost:8080" \
   --env="CISCO_APICURL=apic1.rmlab.local" \
   --env="CISCO_APICUSERNAME=admin" \
