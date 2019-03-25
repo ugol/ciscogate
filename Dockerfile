@@ -15,4 +15,6 @@ RUN source /etc/profile &&\
     go build &&\
     go get -u
 
-CMD ["./ciscogate start"]
+RUN mv ciscogate /usr/local/bin/
+
+CMD ["ciscogate start"]
