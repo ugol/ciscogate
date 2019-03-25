@@ -11,7 +11,8 @@ RUN cd /tmp/ && \
 
 COPY . .
 
-RUN go build &&\
+RUN source /etc/profile &&\
+    go build &&\
     go get -u
 
 CMD ["./ciscogate start"]
