@@ -4,29 +4,19 @@ Bla bla
 
 ## Usage
 
-Building and compiling on OpenShift
-
-oc new-app https://github.com/ugol/ciscogate.git
-
-Available Environents:
- CISCO_ADDRESS to set listen interface/webhook. Default is 'localhost:8080'
- CISCO_APICURL to set apic url. Default is 'apic1.rmlab.local' 
- CISCO_APICUSERNAME to set user name. Default is 'admin' 
- CISCO_APICPASSWORD to set password. Default is 'C1sco123' 
- CISCO_OPENSHIFTTENANT to set OCP tenant. Default is 'openshift39' 
- CISCO_EPGTOBECREATED to set epg. Default is 'prova18e26' 
- CISCO_GRACEFULTIMEOUT to set GracefulTimeout. Default is '15s' 
- CISCO_WRITETIMEOUT to set WriteTimeout. Default is '15s' 
- CISCO_READTIMEOUT to set ReadTimeout. Default is '15s'
- CISCO_IDLETIMEOUT to set IdleTimeout. Default is '1m0s'
-
+Building and compiling on OpenShift (env value as default)
 
 ```bash
-cd ciscogate
-go build
-go get -u
+oc new-app https://github.com/ugol/ciscogate.git \
+  --env="CISCO_ADDRESS=localhost:8080"
+  --env="CISCO_APICURL=apic1.rmlab.local"
+  --env="CISCO_APICUSERNAME=admin"
+  --env="CISCO_APICPASSWORD=C1sco123"
+  --env="CISCO_OPENSHIFTTENANT=openshift39"
+  --env="CISCO_EPGTOBECREATED=prova18e26"
+  --env="CISCO_GRACEFULTIMEOUT=15s"
+  --env="CISCO_WRITETIMEOUT=15s"
+  --env="CISCO_READTIMEOUT=15s"
+  --env="CISCO_IDLETIMEOUT=1m0s"
 ```
 
-## Usage
-
-...
