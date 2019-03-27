@@ -1,0 +1,46 @@
+{
+  "kind": "AdmissionReview",
+  "apiVersion": "admission.k8s.io/v1beta1",
+  "request": {
+    "uid": "60620958-4117-11e9-8662-525400558176",
+    "kind": {
+      "group": "",
+      "version": "v1",
+      "kind": "Namespace"
+    },
+    "resource": {
+      "group": "",
+      "version": "v1",
+      "resource": "namespaces"
+    },
+    "operation": "CREATE",
+    "userInfo": {
+      "username": "system:openshift-master",
+      "groups": [
+        "system:masters",
+        "system:authenticated"
+      ]
+    },
+    "object": {
+      "metadata": {
+        "name": "test",
+        "uid": "6061ddc7-4117-11e9-aa23-525400558176",
+        "creationTimestamp": "2019-03-07T20:27:06Z",
+        "annotations": {
+          "openshift.io/description": "",
+          "openshift.io/display-name": "",
+          "openshift.io/requester": "developer"
+        }
+      },
+      "spec": {
+        "finalizers": [
+          "openshift.io/origin"
+        ]
+      },
+      "status": {
+        "phase": "Active"
+      }
+    },
+    "oldObject": null
+  }
+}

@@ -17,6 +17,7 @@ package cmd
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -78,13 +79,55 @@ type Imdata struct {
 	} `xml:"aaaLogin"`
 }
 
+type KubeResource struct {
+	Kind       string `json:"kind"`
+	APIVersion string `json:"apiVersion"`
+	Request    struct {
+		UID  string `json:"uid"`
+		Kind struct {
+			Group   string `json:"group"`
+			Version string `json:"version"`
+			Kind    string `json:"kind"`
+		} `json:"kind"`
+		Resource struct {
+			Group    string `json:"group"`
+			Version  string `json:"version"`
+			Resource string `json:"resource"`
+		} `json:"resource"`
+		Operation string `json:"operation"`
+		UserInfo  struct {
+			Username string   `json:"username"`
+			Groups   []string `json:"groups"`
+		} `json:"userInfo"`
+		Object struct {
+			Metadata struct {
+				Name              string    `json:"name"`
+				UID               string    `json:"uid"`
+				CreationTimestamp time.Time `json:"creationTimestamp"`
+				Annotations       struct {
+					OpenshiftIoDescription string `json:"openshift.io/description"`
+					OpenshiftIoDisplayName string `json:"openshift.io/display-name"`
+					OpenshiftIoRequester   string `json:"openshift.io/requester"`
+				} `json:"annotations"`
+			} `json:"metadata"`
+			Spec struct {
+				Finalizers []string `json:"finalizers"`
+			} `json:"spec"`
+			Status struct {
+				Phase string `json:"phase"`
+			} `json:"status"`
+		} `json:"object"`
+		OldObject interface{} `json:"oldObject"`
+	} `json:"request"`
+}
+
 var (
 	address         = "localhost:8080"
 	apicURL         = "apic1.rmlab.local"
 	apicUsername    = "admin"
 	apicPassword    = "C1sco123"
 	openshiftTenant = "openshift39"
-	epgToBeCreated  = "prova18e26"
+	//epgToBeCreated  = "prova18e26"
 
 	writeTimeout    = time.Second * 15
 	readTimeout     = time.Second * 15
@@ -106,7 +149,7 @@ func init() {
 	bindEnvToStringVar(&apicUsername, "CISCO_APICUSERNAME")
 	bindEnvToStringVar(&apicPassword, "CISCO_APICPASSWORD")
 	bindEnvToStringVar(&openshiftTenant, "CISCO_OPENSHIFTTENANT")
-	bindEnvToStringVar(&epgToBeCreated, "CISCO_EPGTOBECREATED")
+	//bindEnvToStringVar(&epgToBeCreated, "CISCO_EPGTOBECREATED")
 	bindEnvToDurationVar(&writeTimeout, "CISCO_WRITETIMEOUT")
 	bindEnvToDurationVar(&readTimeout, "CISCO_READTIMEOUT")
 	bindEnvToDurationVar(&idleTimeout, "CISCO_IDLETIMEOUT")
@@ -147,12 +190,11 @@ func PrintUsage() {
 		"use CISCO_APICUSERNAME to set user name. Default is '%s' \n "+
 		"use CISCO_APICPASSWORD to set password. Default is '%s' \n "+
 		"use CISCO_OPENSHIFTTENANT to set OCP tenant. Default is '%s' \n "+
-		"use CISCO_EPGTOBECREATED to set epg. Default is '%s' \n "+
 		"use CISCO_GRACEFULTIMEOUT to set GracefulTimeout. Default is '%s' \n "+
 		"use CISCO_WRITETIMEOUT to set WriteTimeout. Default is '%s' \n "+
 		"use CISCO_READTIMEOUT to set ReadTimeout. Default is '%s'\n "+
 		"use CISCO_IDLETIMEOUT to set IdleTimeout. Default is '%s'\n\n",
-		address, apicURL, apicUsername, apicPassword, openshiftTenant, epgToBeCreated, gracefulTimeout, writeTimeout, readTimeout, idleTimeout)
+		address, apicURL, apicUsername, apicPassword, openshiftTenant, gracefulTimeout, writeTimeout, readTimeout, idleTimeout)
 }
 
 func printEnvironment() {
@@ -163,84 +205,87 @@ func printEnvironment() {
 		"ApicUsername: %s \n "+
 		"ApicPassword: %s \n "+
 		"OpenshiftTenant: %s \n "+
-		"EpgToBeCreated: %s \n "+
 		"GracefulTimeout: %s\n "+
 		"WriteTimeout: %s\n "+
 		"ReadTimeout: %s\n "+
 		"IdleTimeout: %s\n",
-		address, apicURL, apicUsername, apicPassword, openshiftTenant, epgToBeCreated, gracefulTimeout, writeTimeout, readTimeout, idleTimeout)
+		address, apicURL, apicUsername, apicPassword, openshiftTenant, gracefulTimeout, writeTimeout, readTimeout, idleTimeout)
 }
 
 func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
 
+	totalRequests.Inc()
+
 	if r.Method == http.MethodGet {
-		log.Printf("Serving GET %v to %s\n", r.RequestURI, r.RemoteAddr)
-		//vars := mux.Vars(r)
-		totalRequests.Inc()
+		log.Printf("Received GET %v from %s\n", r.RequestURI, r.RemoteAddr)
+		vars := mux.Vars(r)
+		epgToBeCreated := vars["epg"]
+		doThat(epgToBeCreated)
+	} else if r.Method == http.MethodPost {
+		log.Printf("Received POST %v from %s\n", r.RequestURI, r.RemoteAddr)
 
-		tokenURL := fmt.Sprintf("https://%v/api/mo/aaaLogin.xml", apicURL)
-		otherURL := fmt.Sprintf("https://%v/api/node/mo/uni/tn-%v/ap-kubernetes/epg-%v.json", apicURL, openshiftTenant, epgToBeCreated)
-
-		xmlAuth := fmt.Sprintf("<aaaUser name='%v' pwd='%v'/>", apicUsername, apicPassword)
-		xmlAuthBytes := []byte(xmlAuth)
-
-
-		log.Printf("Sending a POST request to %v containing %v", tokenURL, xmlAuth)
-		req, err := http.NewRequest("POST", tokenURL, bytes.NewBuffer(xmlAuthBytes))
-		req.Header.Set("Content-Type", "application/xml")
-
-		client := &http.Client{}
-		resp, err := client.Do(req)
+		decoder := json.NewDecoder(r.Body)
+		var k KubeResource
+		err := decoder.Decode(&k)
 		if err != nil {
 			panic(err)
 		}
-		defer resp.Body.Close()
-
-		log.Println("Status -->", resp.Status)
-		log.Println("Headers -->", resp.Header)
-		imDataRaw, _ := ioutil.ReadAll(resp.Body)
-
-		token, err  := ExtractToken(imDataRaw)
-		if err != nil {
-			panic(err)
-		}
-
-		log.Printf("Received Auth token:\n %v", token)
-
-		log.Println("Loading answer.json template")
-		jsonAnswerBytes, err := ioutil.ReadFile("answer.json")
-		if err != nil {
-			panic(err)
-		}
-
-		jsonAnswerTemplate := string(jsonAnswerBytes)
-		jsonAnswer := fmt.Sprintf(jsonAnswerTemplate, openshiftTenant, epgToBeCreated, epgToBeCreated, openshiftTenant, openshiftTenant)
-
-		log.Println(jsonAnswerTemplate)
-
-		log.Printf("Sending a POST request with the token to %v with this json:\n %v", otherURL, jsonAnswer)
-
-		// TODO: add other metadata to the cookie? check if 'token' is the correct name
-		cookie := http.Cookie{
-			Name:"token",
-			Value:token,
-		}
-		req, err = http.NewRequest("POST", otherURL, bytes.NewBuffer(xmlAuthBytes))
-		req.Header.Set("Content-Type", "application/json")
-		req.AddCookie(&cookie)
-
-		resp, err = client.Do(req)
-		if err != nil {
-			panic(err)
-		}
-		defer resp.Body.Close()
-
-		log.Println("Status -->", resp.Status)
-		log.Println("Headers -->", resp.Header)
-		answer, _ := ioutil.ReadAll(resp.Body)
-		log.Printf("Server answered with:\n %v", answer)
-
+		fmt.Println(k)
+		epgToBeCreated := k.Request.Object.Metadata.Name
+		doThat(epgToBeCreated)
 	}
+}
+
+func doThat(epgToBeCreated string) {
+	log.Printf("EPG name to be created: %v\n", epgToBeCreated)
+	tokenURL := fmt.Sprintf("https://%v/api/mo/aaaLogin.xml", apicURL)
+	otherURL := fmt.Sprintf("https://%v/api/node/mo/uni/tn-%v/ap-kubernetes/epg-%v.json", apicURL, openshiftTenant, epgToBeCreated)
+	xmlAuth := fmt.Sprintf("<aaaUser name='%v' pwd='%v'/>", apicUsername, apicPassword)
+	xmlAuthBytes := []byte(xmlAuth)
+	log.Printf("Getting auth token for user: %v\n", apicUsername)
+	log.Printf("Sending a POST request to %v containing %v", tokenURL, xmlAuth)
+	req, err := http.NewRequest("POST", tokenURL, bytes.NewBuffer(xmlAuthBytes))
+	req.Header.Set("Content-Type", "application/xml")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	log.Println("Status -->", resp.Status)
+	log.Println("Headers -->", resp.Header)
+	imDataRaw, _ := ioutil.ReadAll(resp.Body)
+	token, err := ExtractToken(imDataRaw)
+	if err != nil {
+		panic(err)
+	}
+	log.Printf("Received Auth token:\n %v", token)
+	log.Println("Loading answer.json template")
+	jsonAnswerBytes, err := ioutil.ReadFile("answer.json")
+	if err != nil {
+		panic(err)
+	}
+	jsonAnswerTemplate := string(jsonAnswerBytes)
+	jsonAnswer := fmt.Sprintf(jsonAnswerTemplate, openshiftTenant, epgToBeCreated, epgToBeCreated, openshiftTenant, openshiftTenant)
+	log.Println(jsonAnswerTemplate)
+	log.Printf("Sending a POST request with the token to %v with this json:\n %v", otherURL, jsonAnswer)
+	// TODO: add other metadata to the cookie? check if 'token' is the correct name
+	cookie := http.Cookie{
+		Name:  "token",
+		Value: token,
+	}
+	req, err = http.NewRequest("POST", otherURL, bytes.NewBuffer([]byte(jsonAnswer)))
+	req.Header.Set("Content-Type", "application/json")
+	req.AddCookie(&cookie)
+	resp, err = client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	log.Println("Status -->", resp.Status)
+	log.Println("Headers -->", resp.Header)
+	answer, _ := ioutil.ReadAll(resp.Body)
+	log.Printf("Server answered with:\n %v", answer)
 }
 
 func ExtractToken(imDataRaw []byte) (string, error) {
@@ -255,7 +300,8 @@ func StartServer() {
 	printEnvironment()
 	r := mux.NewRouter()
 
-	r.HandleFunc("/ciscogate", CiscoGateHandler).Methods("GET")
+	r.HandleFunc("/ciscogate/{epg}", CiscoGateHandler).Methods("GET")
+	r.HandleFunc("/ciscogate", CiscoGateHandler).Methods("POST")
 
 	r.Path("/metrics").Handler(promhttp.Handler())
 
