@@ -271,10 +271,11 @@ func doThat(epgToBeCreated string) {
 	jsonAnswer := fmt.Sprintf(jsonAnswerTemplate, openshiftTenant, epgToBeCreated, epgToBeCreated, openshiftTenant, openshiftTenant)
 	log.Println(jsonAnswerTemplate)
 	log.Printf("Sending a POST request with the token to %v with this json:\n %v", otherURL, jsonAnswer)
-	// TODO: add other metadata to the cookie? check if 'token' is the correct name
+
 	cookie := http.Cookie{
 		Name:  "APIC-cookie",
 		Value: token,
+		Expires: time.Now().Add(600*time.Second),
 	}
 	req, err = http.NewRequest("POST", otherURL, bytes.NewBuffer([]byte(jsonAnswer)))
 	req.Header.Set("Content-Type", "application/json")
