@@ -27,6 +27,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"crypto/tls"
 	"os"
 	"os/signal"
 	"time"
@@ -244,6 +245,7 @@ func doThat(epgToBeCreated string) {
 	xmlAuthBytes := []byte(xmlAuth)
 	log.Printf("Getting auth token for user: %v\n", apicUsername)
 	log.Printf("Sending a POST request to %v containing %v", tokenURL, xmlAuth)
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	req, err := http.NewRequest("POST", tokenURL, bytes.NewBuffer(xmlAuthBytes))
 	req.Header.Set("Content-Type", "application/xml")
 	client := &http.Client{}
