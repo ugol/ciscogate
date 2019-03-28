@@ -273,7 +273,7 @@ func doThat(epgToBeCreated string) {
 	log.Printf("Sending a POST request with the token to %v with this json:\n %v", otherURL, jsonAnswer)
 	// TODO: add other metadata to the cookie? check if 'token' is the correct name
 	cookie := http.Cookie{
-		Name:  "token",
+		Name:  "APIC-cookie",
 		Value: token,
 	}
 	req, err = http.NewRequest("POST", otherURL, bytes.NewBuffer([]byte(jsonAnswer)))
