@@ -17,6 +17,8 @@ package cmd
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
+	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
@@ -27,7 +29,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"crypto/tls"
 	"os"
 	"os/signal"
 	"time"
@@ -234,6 +235,23 @@ func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(k)
 		epgToBeCreated := k.Request.Object.Metadata.Name
 		doThat(epgToBeCreated)
+
+		patchTemplate := `[{"metadata": {"annotations": {"opflex.cisco.com/endpoint-group": "%v"}}}]`
+		patch := fmt.Sprintf(patchTemplate, "123")
+		patchB64 := base64.URLEncoding.EncodeToString([]byte(patch))
+
+		admissionBytes, err := ioutil.ReadFile("admission.json")
+		if err != nil {
+			panic(err)
+		}
+		admissionTemplate := string(admissionBytes)
+		admission := fmt.Sprintf(admissionTemplate, patchB64)
+		log.Printf("Generated admission: %v\n", admission)
+		_, err = fmt.Fprint(w, admission)
+
+		if err != nil {
+			log.Println(err)
+		}
 	}
 }
 
@@ -289,6 +307,7 @@ func doThat(epgToBeCreated string) {
 	log.Println("Headers -->", resp.Header)
 	answer, _ := ioutil.ReadAll(resp.Body)
 	log.Printf("Server answered with:\n %v", answer)
+
 }
 
 func ExtractToken(imDataRaw []byte) (string, error) {
