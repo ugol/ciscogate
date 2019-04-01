@@ -257,6 +257,10 @@ func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
 
 func doThat(epgToBeCreated string) {
 	log.Printf("EPG name to be created: %v\n", epgToBeCreated)
+        if cisco_stub = true {
+		log.Printf("CISCO STUB TRUE... SKIPPING BACKEND CALLS!\n", e)
+		return ()
+	}
 	tokenURL := fmt.Sprintf("https://%v/api/mo/aaaLogin.xml", apicURL)
 	otherURL := fmt.Sprintf("https://%v/api/node/mo/uni/tn-%v/ap-kubernetes/epg-%v.json", apicURL, openshiftTenant, epgToBeCreated)
 	xmlAuth := fmt.Sprintf("<aaaUser name='%v' pwd='%v'/>", apicUsername, apicPassword)
