@@ -135,6 +135,7 @@ var (
 	readTimeout     = time.Second * 15
 	idleTimeout     = time.Second * 60
 	gracefulTimeout = time.Second * 15
+	ciscoStub       = "false"
 )
 
 var (
@@ -156,6 +157,7 @@ func init() {
 	bindEnvToDurationVar(&readTimeout, "CISCO_READTIMEOUT")
 	bindEnvToDurationVar(&idleTimeout, "CISCO_IDLETIMEOUT")
 	bindEnvToDurationVar(&gracefulTimeout, "CISCO_GRACEFULTIMEOUT")
+        bindEnvToStringVar(&ciscoStub, "CISCO_STUB")
 
 }
 
@@ -257,9 +259,9 @@ func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
 
 func doThat(epgToBeCreated string) {
 	log.Printf("EPG name to be created: %v\n", epgToBeCreated)
-        if cisco_stub = true {
-		log.Printf("CISCO STUB TRUE... SKIPPING BACKEND CALLS!\n", e)
-		return ()
+        if ciscoStub == "true" {
+		log.Printf("CISCO STUB TRUE... SKIPPING BACKEND CALLS!\n")
+		return 
 	}
 	tokenURL := fmt.Sprintf("https://%v/api/mo/aaaLogin.xml", apicURL)
 	otherURL := fmt.Sprintf("https://%v/api/node/mo/uni/tn-%v/ap-kubernetes/epg-%v.json", apicURL, openshiftTenant, epgToBeCreated)
