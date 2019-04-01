@@ -236,7 +236,12 @@ func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Println(k)
 		epgToBeCreated := k.Request.Object.Metadata.Name
-		doThat(epgToBeCreated)
+                if ciscoStub != "true" {
+                  log.Printf("CISCO STUB NOT TRUE\n")
+                  doThat(epgToBeCreated)
+                } else {
+	                 log.Printf("CISCO STUB TRUE... SKIPPING BACKEND CALLS!\n")
+                       }
 
 		patchTemplate := `[{"metadata": {"annotations": {"opflex.cisco.com/endpoint-group": "%v"}}}]`
 		patch := fmt.Sprintf(patchTemplate, "123")
@@ -259,10 +264,6 @@ func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
 
 func doThat(epgToBeCreated string) {
 	log.Printf("EPG name to be created: %v\n", epgToBeCreated)
-        if ciscoStub == "true" {
-		log.Printf("CISCO STUB TRUE... SKIPPING BACKEND CALLS!\n")
-		return 
-	}
 	tokenURL := fmt.Sprintf("https://%v/api/mo/aaaLogin.xml", apicURL)
 	otherURL := fmt.Sprintf("https://%v/api/node/mo/uni/tn-%v/ap-kubernetes/epg-%v.json", apicURL, openshiftTenant, epgToBeCreated)
 	xmlAuth := fmt.Sprintf("<aaaUser name='%v' pwd='%v'/>", apicUsername, apicPassword)
