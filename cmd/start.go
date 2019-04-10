@@ -124,7 +124,7 @@ type KubeResource struct {
 }
 
 var (
-	address         = "localhost:8080"
+	address         = "0.0.0.0:8080"
 	apicURL         = "apic1.rmlab.local"
 	apicUsername    = "admin"
 	apicPassword    = "C1sco123"
@@ -212,8 +212,9 @@ func printEnvironment() {
 		"GracefulTimeout: %s\n "+
 		"WriteTimeout: %s\n "+
 		"ReadTimeout: %s\n "+
-		"IdleTimeout: %s\n",
-		address, apicURL, apicUsername, apicPassword, openshiftTenant, gracefulTimeout, writeTimeout, readTimeout, idleTimeout)
+		"IdleTimeout: %s\n "+
+		"CiscoStub: %s\n",
+		address, apicURL, apicUsername, apicPassword, openshiftTenant, gracefulTimeout, writeTimeout, readTimeout, idleTimeout, ciscoStub)
 }
 
 func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
@@ -242,9 +243,10 @@ func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
                 } else {
 	                 log.Printf("CISCO STUB TRUE... SKIPPING BACKEND CALLS!\n")
                        }
-
-		patchTemplate := `[{"metadata": {"annotations": {"opflex.cisco.com/endpoint-group": "%v"}}}]`
-		patch := fmt.Sprintf(patchTemplate, "123")
+		// [{"op":"add","path":"/metadata/labels/thisisanewlabel", "value":"hello"}]
+		//patchTemplate := `[{"metadata": {"annotations": {"opflex.cisco.com/endpoint-group": "%v"}}}]`
+                patchTemplate := `{"op":"add","path":"/metadata/labels/opflex.cisco.com\/endpoint-group", "value":"%v"}`
+		patch := fmt.Sprintf(patchTemplate, epgToBeCreated)
 		patchB64 := base64.URLEncoding.EncodeToString([]byte(patch))
 
 		admissionBytes, err := ioutil.ReadFile("admission.json")

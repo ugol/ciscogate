@@ -13,13 +13,17 @@ WORKDIR /tmp/ciscogate
 COPY . .
 RUN  source /etc/profile &&\
      export GOPATH=$(echo $(pwd)/src) &&\
-     go build &&\
-     mv ciscogate /usr/local/bin/ &&\
-     rm -rf /tmp/ciscogate
+     go build 
+#     mv ciscogate /usr/local/bin/ &&\
+#     rm -rf /tmp/ciscogate
 
-RUN chgrp -R 0 /usr/local/bin/ciscogate && \
-    chmod -R g=u /usr/local/bin/ciscogate
+#RUN chgrp -R 0 /usr/local/bin/ciscogate && \
+#    chmod -R g=u /usr/local/bin/ciscogate
+RUN chgrp -R 0 . && \
+    chmod -R g=u .
+
 
 EXPOSE 8080 
 
-CMD /usr/local/bin/ciscogate start
+#CMD /usr/local/bin/ciscogate start
+CMD ./ciscogate start
