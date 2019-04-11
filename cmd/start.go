@@ -243,8 +243,8 @@ func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
                 } else {
 	                 log.Printf("CISCO STUB TRUE... SKIPPING BACKEND CALLS!\n")
                        }
-		// [{"op":"add","path":"/metadata/labels/thisisanewlabel", "value":"hello"}]
-		//patchTemplate := `[{"metadata": {"annotations": {"opflex.cisco.com/endpoint-group": "%v"}}}]`
+
+		// Build the patch for the response to k8s 
 		patchTemplate := `[{"op":"add","path":"/metadata/annotations", "value":{"opflex.cisco.com/endpoint-group":"%v"}}]`
 		patch := fmt.Sprintf(patchTemplate, epgToBeCreated)
 		patchB64 := base64.URLEncoding.EncodeToString([]byte(patch))
