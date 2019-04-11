@@ -3,7 +3,7 @@ kind: MutatingWebhookConfiguration
 metadata:
   name: namespace-mutator 
 webhooks:
-- name: ciscogate
+- name: ciscogate.192.168.42.211.nip.io
   clientConfig: 
     #service:
     #    namespace: default 
