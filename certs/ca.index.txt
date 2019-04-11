@@ -1,0 +1,1 @@
+V	200410114129Z		08	unknown	/C=IT/ST=Rome/L=Rome/O=ACME Corp/CN=ciscogate.svc

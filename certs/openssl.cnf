@@ -43,7 +43,7 @@ nsComment            = "OpenSSL Generated Certificate"
 
 DNS.1  = ciscogate.myproject.svc
 DNS.2  = *.svc
-DNS.3  = ciscogate-ciscogate.192.168.42.221.nip.io 
+DNS.3  = ciscogate-myproject.192.168.42.211.nip.io 
 DNS.4  = *.nip.io
 DNS.5  = ciscogate.nip.io
 
