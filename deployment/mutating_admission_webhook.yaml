@@ -9,7 +9,7 @@ webhooks:
     #    namespace: default 
     #    name: webhooks
     #    path: "/this_is_a_path" 
-    url: "https://nc-server-myproject.192.168.42.43.nip.io/this_is_a_path"
+    url: "https://ciscogate-ciscogate.192.168.42.211.nip.io/ciscogate"
     caBundle: ""
   rules:
     - apiGroups:
