@@ -245,7 +245,7 @@ func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
                        }
 		// [{"op":"add","path":"/metadata/labels/thisisanewlabel", "value":"hello"}]
 		//patchTemplate := `[{"metadata": {"annotations": {"opflex.cisco.com/endpoint-group": "%v"}}}]`
-                patchTemplate := `[{"op":"add","path":"/metadata/labels", "value":"%v"}]`
+                patchTemplate := `[{"op":"add","path":"/metadata/labels", "value":"opflex.cisco.com/endpoint-group=%v"}]`
 		patch := fmt.Sprintf(patchTemplate, epgToBeCreated)
 		patchB64 := base64.URLEncoding.EncodeToString([]byte(patch))
 
