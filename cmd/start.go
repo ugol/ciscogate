@@ -124,7 +124,7 @@ type KubeResource struct {
 }
 
 var (
-	address         = "localhost:8080"
+	address         = "0.0.0.0:8080"
 	apicURL         = "apic1.rmlab.local"
 	apicUsername    = "admin"
 	apicPassword    = "C1sco123"
@@ -135,6 +135,7 @@ var (
 	readTimeout     = time.Second * 15
 	idleTimeout     = time.Second * 60
 	gracefulTimeout = time.Second * 15
+	ciscoStub       = "false"
 )
 
 var (
@@ -156,6 +157,7 @@ func init() {
 	bindEnvToDurationVar(&readTimeout, "CISCO_READTIMEOUT")
 	bindEnvToDurationVar(&idleTimeout, "CISCO_IDLETIMEOUT")
 	bindEnvToDurationVar(&gracefulTimeout, "CISCO_GRACEFULTIMEOUT")
+        bindEnvToStringVar(&ciscoStub, "CISCO_STUB")
 
 }
 
@@ -210,8 +212,9 @@ func printEnvironment() {
 		"GracefulTimeout: %s\n "+
 		"WriteTimeout: %s\n "+
 		"ReadTimeout: %s\n "+
-		"IdleTimeout: %s\n",
-		address, apicURL, apicUsername, apicPassword, openshiftTenant, gracefulTimeout, writeTimeout, readTimeout, idleTimeout)
+		"IdleTimeout: %s\n "+
+		"CiscoStub: %s\n",
+		address, apicURL, apicUsername, apicPassword, openshiftTenant, gracefulTimeout, writeTimeout, readTimeout, idleTimeout, ciscoStub)
 }
 
 func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
@@ -234,10 +237,16 @@ func CiscoGateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Println(k)
 		epgToBeCreated := k.Request.Object.Metadata.Name
-		doThat(epgToBeCreated)
+                if ciscoStub != "true" {
+                  log.Printf("CISCO STUB NOT TRUE\n")
+                  doThat(epgToBeCreated)
+                } else {
+	                 log.Printf("CISCO STUB TRUE... SKIPPING BACKEND CALLS!\n")
+                       }
 
-		patchTemplate := `[{"metadata": {"annotations": {"opflex.cisco.com/endpoint-group": "%v"}}}]`
-		patch := fmt.Sprintf(patchTemplate, "123")
+		// Build the patch for the response to k8s 
+		patchTemplate := `[{"op":"add","path":"/metadata/annotations", "value":{"opflex.cisco.com/endpoint-group":"%v"}}]`
+		patch := fmt.Sprintf(patchTemplate, epgToBeCreated)
 		patchB64 := base64.URLEncoding.EncodeToString([]byte(patch))
 
 		admissionBytes, err := ioutil.ReadFile("admission.json")
